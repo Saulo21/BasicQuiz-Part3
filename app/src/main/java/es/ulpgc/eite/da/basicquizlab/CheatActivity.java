@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class CheatActivity extends AppCompatActivity {
@@ -15,11 +16,18 @@ public class CheatActivity extends AppCompatActivity {
   public final static String EXTRA_ANSWER = "EXTRA_ANSWER";
   public final static String EXTRA_CHEATED = "EXTRA_CHEATED";
 
+  //Etiqueta para guardar si el usuario ha hecho click en yes
+  public final static String KEY_USER_CHEAT_BUTTON = "USER_CHEAT_BUTTON";
+
+
   private Button noButton, yesButton;
   private TextView answerText;
 
   private int currentAnswer;
   private boolean answerCheated;
+  //Variable para ver si se ha hecho click en yes
+  private boolean yesButtonClicked = false;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +36,19 @@ public class CheatActivity extends AppCompatActivity {
 
     getSupportActionBar().setTitle(R.string.cheat_title);
 
-    initLayoutData();
+    if(savedInstanceState != null) { // recreando activity
 
+      // fijando estado de cheat
+
+      yesButtonClicked=savedInstanceState.getBoolean(KEY_USER_CHEAT_BUTTON);
+      currentAnswer=savedInstanceState.getInt(EXTRA_ANSWER);
+      answerCheated=savedInstanceState.getBoolean(EXTRA_CHEATED);
+
+      // aplicar estado
+
+    }
+
+    initLayoutData();
     linkLayoutComponents();
     enableLayoutButtons();
   }
@@ -47,8 +66,18 @@ public class CheatActivity extends AppCompatActivity {
 
   private void enableLayoutButtons() {
 
-    noButton.setOnClickListener(v -> onNoButtonClicked());
-    yesButton.setOnClickListener(v -> onYesButtonClicked());
+    if(yesButtonClicked){
+      yesButton.setEnabled(false);
+      noButton.setEnabled(false);
+      if(currentAnswer == 1){
+        answerText.setText(R.string.true_text);
+      } else {
+        answerText.setText(R.string.false_text);
+      }
+    } else {
+      noButton.setOnClickListener(v -> onNoButtonClicked());
+      yesButton.setOnClickListener(v -> onYesButtonClicked());
+    }
   }
 
   private void returnCheatedStatus() {
@@ -74,6 +103,7 @@ public class CheatActivity extends AppCompatActivity {
     yesButton.setEnabled(false);
     noButton.setEnabled(false);
     answerCheated = true;
+    yesButtonClicked=true;
 
     if(currentAnswer == 0) {
       answerText.setText(R.string.false_text);
@@ -90,4 +120,12 @@ public class CheatActivity extends AppCompatActivity {
     returnCheatedStatus();
   }
 
+  @Override
+  protected void onSaveInstanceState(@NonNull Bundle outState) {
+    super.onSaveInstanceState(outState);
+
+    outState.putBoolean(KEY_USER_CHEAT_BUTTON, yesButtonClicked);
+    outState.putInt(EXTRA_ANSWER,currentAnswer);
+    outState.putBoolean(EXTRA_CHEATED, answerCheated);
+  }
 }
